@@ -53,12 +53,12 @@ inline void CMainFrame::OnPaint()
 	dc.SelectStockObject(HOLLOW_BRUSH);
 	CRect hrect(m_wr.left, m_wr.top + m_wr_cy / 3, m_wr.right, m_wr.bottom - m_wr_cy / 3);
 	dc.Rectangle(hrect);
-	// Cross button
-	(m_ttt.side == Mark::cross) ? dc.SelectStockObject(BLACK_BRUSH) : dc.SelectStockObject(HOLLOW_BRUSH);
-	dc.Rectangle(m_crosses_button);
-	dc.DrawTextW("Crosses", m_crosses_button, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
 	// Nought button
 	(m_ttt.side == Mark::nought) ? dc.SelectStockObject(BLACK_BRUSH) : dc.SelectStockObject(HOLLOW_BRUSH);
+	dc.Rectangle(m_crosses_button);
+	dc.DrawTextW("Crosses", m_crosses_button, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+	// Cross button
+	(m_ttt.side == Mark::cross) ? dc.SelectStockObject(BLACK_BRUSH) : dc.SelectStockObject(HOLLOW_BRUSH);
 	dc.Rectangle(m_noughts_button);
 	dc.DrawTextW("Noughts", m_noughts_button, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
 	// Reset button
@@ -91,13 +91,14 @@ inline void CMainFrame::OnLButtonDown(UINT nFlags, CPoint pt)
 	// Choosing side
 	if (m_ttt.side == Mark::empty && m_crosses_button.PtInRect(pt))
 	{
-		m_ttt.side = Mark::cross;
+		m_ttt.side = Mark::nought;
 		Invalidate(TRUE);
 		return;
 	}
 	if (m_ttt.side == Mark::empty && m_noughts_button.PtInRect(pt))
 	{
-		m_ttt.side = Mark::nought;
+		m_ttt.side = Mark::cross;
+		AIMakeMove();
 		Invalidate(TRUE);
 		return;
 	}
@@ -128,12 +129,12 @@ inline void CMainFrame::OnLButtonDown(UINT nFlags, CPoint pt)
 	{
 		if (m_ttt.side == Mark::cross)
 		{
-			m_ttt.pgrid->SetCross(row, col);
+			m_ttt.pgrid->SetNought(row, col);
 			AIMakeMove(); // if without command prompt
 		}
 		else if (m_ttt.side == Mark::nought)
 		{
-			m_ttt.pgrid->SetNought(row, col);
+			m_ttt.pgrid->SetCross(row, col);
 			AIMakeMove(); // if without command prompt
 		}
 		else

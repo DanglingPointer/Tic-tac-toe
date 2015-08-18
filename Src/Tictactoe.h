@@ -1,6 +1,7 @@
 #pragma once
 #include<stdexcept>
 #include<utility>
+#include<set>
 
 #ifdef _CONSOLE
 #include<ostream>
@@ -158,7 +159,24 @@ namespace ttt
 		}
 		void AITurn()
 		{
+			for (uint row = 0; row < 3; ++row)
+				for (uint col = 0; col < 3; ++col)
+				{
+					if (pgrid->at(row, col) != Mark::empty)
+						continue;
+					Grid* pg = new Grid(*pgrid);
 
+					(side == Mark::cross) ? pg->SetCross(row, col) : pg->SetNought(row, col);
+
+					if (pg->Won() == side || 
+						Minimax(*pg, (side == Mark::cross) ? Mark::nought : Mark::cross) == Result::win)
+					{
+						delete pgrid;
+						pgrid = pg;
+						return;
+					}
+					delete pg;
+				}
 		}
 		void Reset()
 		{
@@ -167,39 +185,38 @@ namespace ttt
 			side = Mark::empty;
 		}
 		Grid* pgrid;
-		Mark side;
+		Mark side; // AI side
 	private:
-		Result Minimax(Grid*& pg, Node& node, Mark turn, Mark side)
+		Result Minimax(const Grid& grid, Mark turn)
 		{
 			if (turn == Mark::empty || side == Mark::empty)
 				throw std::invalid_argument("Ttt::Minimax()");
 
-			Grid* pnewg = new Grid(*pg);
+			std::set<Grid> branches;
 			for (uint row = 0; row < 3; ++row)
 				for (uint col = 0; col < 3; ++col)
 				{
-					if (pg->at(row, col) == Mark::empty)
-					{	// Changing state
-						(turn == Mark::cross) ? pnewg->SetCross(row, col) : pnewg->SetNought(row, col);
-					}
-					Mark winner = pnewg->Won();
-					if ((winner == Mark::cross && side == Mark::cross) ||
-						(winner == Mark::nought && side == Mark::nought))
-					{	// Terminal node
-						delete pg;
-						pg = pnewg;
-						return Result::win;
-					}
-					if ((winner == Mark::cross && side == Mark::nought) ||
-						(winner == Mark::nought && side == Mark::cross))
-					{	// Terminal node
-						delete pnewg;
-						return Result::loss;
-					}
-					// Intermediate node
-					Result temp = Minimax(pnewg, node, ((turn == Mark::cross) ? Mark::nought : Mark::cross), side);
+					if (grid.at(row, col) != Mark::empty)
+						continue;
+					// Changing state
+					Grid g = grid;
+					(turn == Mark::cross) ? g.SetCross(row, col) : g.SetNought(row, col);
 
+					// Terminal node
+					Mark winner = g.Won();
+					if (winner == side)
+						return Result::win;
+					else if (winner != Mark::empty)
+						return Result::loss;
+
+					// Intermediate node
+					Result temp = Minimax(g, ((turn == Mark::cross) ? Mark::nought : Mark::cross));
+					if (temp == Result::loss)
+						continue;
+					if (temp == Result::win)
+						return Result::win;
 				}
+			return Result::loss;
 		}
 	};
 }
