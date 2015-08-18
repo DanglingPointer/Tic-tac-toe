@@ -27,8 +27,7 @@ namespace ttt
 	public:
 		Grid() :m_pdata(new Mark[9])
 		{
-			for (uint i = 0; i < 9; ++i)
-				*(m_pdata + i) = Mark::empty;
+			Clear();
 		}
 		Grid(const Grid& g) :Grid()
 		{
@@ -107,6 +106,11 @@ namespace ttt
 				return Mark::nought;
 
 			return Mark::empty;
+		}
+		void Clear()
+		{
+			for (uint i = 0; i < 9; ++i)
+				*(m_pdata + i) = Mark::empty;
 		}
 	private:
 		Mark *m_pdata;

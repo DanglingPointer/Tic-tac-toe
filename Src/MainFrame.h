@@ -52,11 +52,11 @@ inline void CMainFrame::OnPaint()
 	CRect hrect(m_wr.left, m_wr.top + m_wr_cy / 3, m_wr.right, m_wr.bottom - m_wr_cy / 3);
 	dc.Rectangle(hrect);
 
-	(m_side == Mark::cross) ? dc.SelectStockObject(GRAY_BRUSH) : dc.SelectStockObject(HOLLOW_BRUSH);
+	(m_side == Mark::cross) ? dc.SelectStockObject(BLACK_BRUSH) : dc.SelectStockObject(HOLLOW_BRUSH);
 	dc.Rectangle(m_crosses_button);
 	dc.DrawTextW("Crosses", m_crosses_button, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
 
-	m_side == (Mark::nought) ? dc.SelectStockObject(GRAY_BRUSH) : dc.SelectStockObject(HOLLOW_BRUSH);
+	(m_side == Mark::nought) ? dc.SelectStockObject(BLACK_BRUSH) : dc.SelectStockObject(HOLLOW_BRUSH);
 	dc.Rectangle(m_noughts_button);
 	dc.DrawTextW("Noughts", m_noughts_button, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
 }
