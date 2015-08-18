@@ -2,6 +2,10 @@
 #include<stdexcept>
 #include<utility>
 
+#ifdef _CONSOLE
+#include<ostream>
+#endif
+
 #define ROW first
 #define COL second
 
@@ -125,6 +129,21 @@ namespace ttt
 				all_cross = false;
 		}
 	};
+#ifdef _CONSOLE
+	std::ostream& operator << (std::ostream& out, const Grid& g)
+	{
+		for (uint row = 0; row < 3; ++row)
+		{
+			for (uint col = 0; col < 3; ++col)
+				if (g.at(row, col) == Mark::empty)
+					out << "   ";
+				else
+					g.at(row, col) == Mark::cross ? out << " X " : out << " O ";
+			out << '\n';
+		}
+		return out;
+	}
+#endif
 	class Ttt
 	{
 	public:

@@ -1,7 +1,5 @@
 #pragma once
 #include<afxwin.h>
-#include<sstream>
-#include<string>
 #include"Tictactoe.h"
 using namespace ttt;
 
