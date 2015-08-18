@@ -7,16 +7,17 @@ class CMainFrame :public CFrameWnd
 {
 public:
 	CMainFrame();
+	void AIMakeMove();
 	afx_msg void OnPaint();
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint pt);
 	DECLARE_MESSAGE_MAP();
 private:
-	CRect m_wr, m_crosses_button, m_noughts_button;
+	CRect m_wr, m_crosses_button, m_noughts_button, m_reset_button;
 	int m_wr_cx, m_wr_cy;
-	Mark m_side;
+	Gameplay m_ttt;
 };
 
-CMainFrame::CMainFrame() :m_side(Mark::empty)
+CMainFrame::CMainFrame()
 {
 	Create(NULL, L"Tic-tac-toe", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX, CRect(0, 0, 500, 530));
 
@@ -35,38 +36,116 @@ CMainFrame::CMainFrame() :m_side(Mark::empty)
 	int left = m_wr.left + dc.GetTextExtent("Crosses").cx + 10;
 	m_noughts_button = CRect(left + 30, 30, left + 30 + dc.GetTextExtent("Crosses").cx + 10, 30 + dc.GetTextExtent("Noughts").cy + 10);
 
+	m_reset_button = CRect(m_wr.right - dc.GetTextExtent("New game").cx - 10, 30, m_wr.right, 30 + dc.GetTextExtent("New game").cy + 10);
+
 	CenterWindow();
 }
 
 inline void CMainFrame::OnPaint()
 {
 	CPaintDC dc(this);
+	// Grid border
 	dc.Rectangle(m_wr);
-
+	// Vertical grid
 	CRect vrect(m_wr.left + m_wr_cx / 3, m_wr.top, m_wr.right - m_wr_cx / 3, m_wr.bottom);
 	dc.Rectangle(vrect);
-	
+	// Horisontal grid
 	dc.SelectStockObject(HOLLOW_BRUSH);
 	CRect hrect(m_wr.left, m_wr.top + m_wr_cy / 3, m_wr.right, m_wr.bottom - m_wr_cy / 3);
 	dc.Rectangle(hrect);
-
-	(m_side == Mark::cross) ? dc.SelectStockObject(BLACK_BRUSH) : dc.SelectStockObject(HOLLOW_BRUSH);
+	// Cross button
+	(m_ttt.side == Mark::cross) ? dc.SelectStockObject(BLACK_BRUSH) : dc.SelectStockObject(HOLLOW_BRUSH);
 	dc.Rectangle(m_crosses_button);
 	dc.DrawTextW("Crosses", m_crosses_button, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
-
-	(m_side == Mark::nought) ? dc.SelectStockObject(BLACK_BRUSH) : dc.SelectStockObject(HOLLOW_BRUSH);
+	// Nought button
+	(m_ttt.side == Mark::nought) ? dc.SelectStockObject(BLACK_BRUSH) : dc.SelectStockObject(HOLLOW_BRUSH);
 	dc.Rectangle(m_noughts_button);
 	dc.DrawTextW("Noughts", m_noughts_button, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+	// Reset button
+	dc.SelectStockObject(HOLLOW_BRUSH);
+	dc.Rectangle(m_reset_button);
+	dc.DrawTextW("New game", m_reset_button, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+	// Marks
+	for (uint row = 0; row < 3; ++row)
+		for (uint col = 0; col < 3; ++col)
+			if (m_ttt.pgrid->at(row, col) == Mark::cross)
+			{
+				int left = m_wr.left + m_wr_cx / 6 - (dc.GetTextExtent("X").cx) / 2 + col * m_wr_cx / 3;
+				int right = left + dc.GetTextExtent("X").cx;
+				int top = m_wr.top + m_wr_cy / 6 - (dc.GetTextExtent("X").cy) / 2 + row * m_wr_cy / 3;
+				int bottom = top + dc.GetTextExtent("X").cy;
+				dc.DrawTextW("X", CRect(left, top, right, bottom), DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+			}
+			else if (m_ttt.pgrid->at(row, col) == Mark::nought)
+			{
+				int left = m_wr.left + m_wr_cx / 6 - (dc.GetTextExtent("O").cx) / 2 + col * m_wr_cx / 3;
+				int right = left + dc.GetTextExtent("O").cx;
+				int top = m_wr.top + m_wr_cy / 6 - (dc.GetTextExtent("O").cy) / 2 + row * m_wr_cy / 3;
+				int bottom = top + dc.GetTextExtent("O").cy;
+				dc.DrawTextW("O", CRect(left, top, right, bottom), DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+			}
 }
 
 inline void CMainFrame::OnLButtonDown(UINT nFlags, CPoint pt)
 {
 	// Choosing side
-	if (m_side == Mark::empty && m_crosses_button.PtInRect(pt))
-		m_side = Mark::cross;
-	else if (m_side == Mark::empty && m_noughts_button.PtInRect(pt))
-		m_side = Mark::nought;
+	if (m_ttt.side == Mark::empty && m_crosses_button.PtInRect(pt))
+	{
+		m_ttt.side = Mark::cross;
+		Invalidate(TRUE);
+		return;
+	}
+	if (m_ttt.side == Mark::empty && m_noughts_button.PtInRect(pt))
+	{
+		m_ttt.side = Mark::nought;
+		Invalidate(TRUE);
+		return;
+	}
+	// New game
+	if (m_reset_button.PtInRect(pt))
+	{
+		m_ttt.Reset();
+		Invalidate(TRUE);
+		return;
+	}
+	// Changing state
+	int col = -1;
+	if (pt.x > m_wr.left)
+	{
+		if (pt.x < m_wr.left + m_wr_cx / 3)	col = 0;
+		else if (pt.x < m_wr.right - m_wr_cx / 3) col = 1;
+		else if (pt.x < m_wr.right) col = 2;
+	}
+	int row = -1;
+	if (pt.y > m_wr.top)
+	{
+		if (pt.y < m_wr.top + m_wr_cy / 3) row = 0;
+		else if (pt.y < m_wr.bottom - m_wr_cy / 3) row = 1;
+		else if (pt.y < m_wr.bottom) row = 2;
+	}
 
+	if (!(row == -1 || col == -1) && m_ttt.pgrid->at(row, col) == Mark::empty)
+	{
+		if (m_ttt.side == Mark::cross)
+		{
+			m_ttt.pgrid->SetCross(row, col);
+			AIMakeMove(); // if without command prompt
+		}
+		else if (m_ttt.side == Mark::nought)
+		{
+			m_ttt.pgrid->SetNought(row, col);
+			AIMakeMove(); // if without command prompt
+		}
+		else
+			MessageBoxW(L"Choose side first!", L"Error");
+		Invalidate(TRUE);
+	}
+}
+
+inline void CMainFrame::AIMakeMove()
+{
+	m_ttt.AITurn();
+	MessageBoxW(L"AI goes!", L"Hi");
 	Invalidate(TRUE);
 }
 

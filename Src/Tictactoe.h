@@ -144,21 +144,30 @@ namespace ttt
 		return out;
 	}
 #endif
-	class Ttt
+	class Gameplay
 	{
 	public:
-		Ttt() :pgrid(new Grid())
+		Gameplay() :pgrid(new Grid()), side(Mark::empty)
 		{
 			;
 		}
-		~Ttt()
+		~Gameplay()
 		{
 			if (pgrid != nullptr)
 				delete pgrid;
 		}
-		void Play()
-		{ }
+		void AITurn()
+		{
+
+		}
+		void Reset()
+		{
+			if (pgrid == nullptr) pgrid = new Grid;
+			else pgrid->Clear();
+			side = Mark::empty;
+		}
 		Grid* pgrid;
+		Mark side;
 	private:
 		Result Minimax(Grid*& pg, Node& node, Mark turn, Mark side)
 		{
