@@ -98,7 +98,11 @@ inline void CMainFrame::OnLButtonDown(UINT nFlags, CPoint pt)
 	if (m_ttt.side == Mark::empty && m_noughts_button.PtInRect(pt))
 	{
 		m_ttt.side = Mark::cross;
-		AIMakeMove();
+		// First move (random)
+		uint row = rand() % 3;
+		uint col = rand() % 3;
+		m_ttt.pgrid->SetCross(row, col);
+
 		Invalidate(TRUE);
 		return;
 	}
@@ -146,7 +150,6 @@ inline void CMainFrame::OnLButtonDown(UINT nFlags, CPoint pt)
 inline void CMainFrame::AIMakeMove()
 {
 	m_ttt.AITurn();
-	MessageBoxW(L"AI goes!", L"Hi");
 	Invalidate(TRUE);
 }
 

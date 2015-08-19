@@ -112,6 +112,13 @@ namespace ttt
 
 			return Mark::empty;
 		}
+		bool Filled() const
+		{
+			for (uint i = 0; i < 9; ++i)
+				if (*(m_pdata + i) == Mark::empty)
+					return false;
+			return true;
+		}
 		void Clear()
 		{
 			for (uint i = 0; i < 9; ++i)
@@ -168,8 +175,24 @@ namespace ttt
 
 					(side == Mark::cross) ? pg->SetCross(row, col) : pg->SetNought(row, col);
 
-					if (pg->Won() == side || 
-						Minimax(*pg, (side == Mark::cross) ? Mark::nought : Mark::cross) == Result::win)
+					if (Minimax(*pg, (side == Mark::cross) ? Mark::nought : Mark::cross) == Result::win)
+					{
+						delete pgrid;
+						pgrid = pg;
+						return;
+					}
+					delete pg;
+				}
+			for (uint row = 0; row < 3; ++row)
+				for (uint col = 0; col < 3; ++col)
+				{
+					if (pgrid->at(row, col) != Mark::empty)
+						continue;
+					Grid* pg = new Grid(*pgrid);
+
+					(side == Mark::cross) ? pg->SetCross(row, col) : pg->SetNought(row, col);
+
+					if (Minimax(*pg, (side == Mark::cross) ? Mark::nought : Mark::cross) == Result::draw)
 					{
 						delete pgrid;
 						pgrid = pg;
@@ -190,9 +213,20 @@ namespace ttt
 		Result Minimax(const Grid& grid, Mark turn)
 		{
 			if (turn == Mark::empty || side == Mark::empty)
-				throw std::invalid_argument("Ttt::Minimax()");
+				throw std::invalid_argument("Error: side or turn unspecified");
 
-			std::set<Grid> branches;
+			Mark winner = grid.Won();
+			if (grid.Filled())
+			{
+				if (winner == Mark::empty)
+					return Result::draw;
+				else if (winner != side)
+					return Result::loss;
+				else
+					return Result::draw;
+			}
+
+			//std::set<Grid> losing_grids;
 			for (uint row = 0; row < 3; ++row)
 				for (uint col = 0; col < 3; ++col)
 				{
@@ -201,22 +235,16 @@ namespace ttt
 					// Changing state
 					Grid g = grid;
 					(turn == Mark::cross) ? g.SetCross(row, col) : g.SetNought(row, col);
-
-					// Terminal node
-					Mark winner = g.Won();
-					if (winner == side)
-						return Result::win;
-					else if (winner != Mark::empty)
-						return Result::loss;
-
 					// Intermediate node
 					Result temp = Minimax(g, ((turn == Mark::cross) ? Mark::nought : Mark::cross));
 					if (temp == Result::loss)
+						return Result::draw;
+					if (temp == Result::draw)
 						continue;
 					if (temp == Result::win)
 						return Result::win;
 				}
-			return Result::loss;
+			return Result::draw;
 		}
 	};
 }
