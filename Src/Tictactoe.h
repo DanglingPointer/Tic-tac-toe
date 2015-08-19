@@ -1,31 +1,25 @@
 #pragma once
 #include<stdexcept>
-#include<utility>
-#include<set>
+//#include<utility>
+//#include<list>
 
 #ifdef _CONSOLE
 #include<ostream>
 #endif
 
-#define ROW first
-#define COL second
+#define	WIN 1
+#define DRAW 0
+#define LOSS -1
 
 namespace ttt
 {
-	typedef unsigned int uint;
-	typedef std::pair<uint, uint> Node;
-
+	typedef unsigned char uint;
+	typedef char Result;
 	enum class Mark
 	{
 		empty,
 		cross,
 		nought
-	};
-	enum class Result
-	{
-		win,
-		loss,
-		draw
 	};
 	class Grid
 	{
@@ -47,6 +41,17 @@ namespace ttt
 		~Grid()
 		{
 			delete[] m_pdata;
+		}
+		bool operator == (const Grid& rhs) const
+		{
+			for (uint i = 0; i < 9; ++i)
+				if (*(m_pdata + i) != *(rhs.m_pdata + i))
+					return false;
+			return true;
+		}
+		bool operator !=(const Grid& rhs) const
+		{
+			return !(operator==(rhs));
 		}
 		Mark at(uint row, uint col) const
 		{
@@ -86,7 +91,7 @@ namespace ttt
 			all_cross = all_nought = true;
 			for (uint col = 0; col < 3; ++col)
 			{
-				for (uint row = 0; (row < 3); ++row)
+				for (uint row = 0; row < 3; ++row)
 					won_at(row, col, all_cross, all_nought);
 				if (all_cross)
 					return Mark::cross;
@@ -175,7 +180,7 @@ namespace ttt
 
 					(side == Mark::cross) ? pg->SetCross(row, col) : pg->SetNought(row, col);
 
-					if (Minimax(*pg, (side == Mark::cross) ? Mark::nought : Mark::cross) == Result::win)
+					if (Minimax(*pg, (side == Mark::cross) ? Mark::nought : Mark::cross) == WIN)
 					{
 						delete pgrid;
 						pgrid = pg;
@@ -192,7 +197,7 @@ namespace ttt
 
 					(side == Mark::cross) ? pg->SetCross(row, col) : pg->SetNought(row, col);
 
-					if (Minimax(*pg, (side == Mark::cross) ? Mark::nought : Mark::cross) == Result::draw)
+					if (Minimax(*pg, (side == Mark::cross) ? Mark::nought : Mark::cross) == DRAW)
 					{
 						delete pgrid;
 						pgrid = pg;
@@ -210,41 +215,60 @@ namespace ttt
 		Grid* pgrid;
 		Mark side; // AI side
 	private:
-		Result Minimax(const Grid& grid, Mark turn)
+		Result Minimax(const Grid& grid, Mark turn, Result alpha = LOSS, Result beta = WIN)
 		{
 			if (turn == Mark::empty || side == Mark::empty)
 				throw std::invalid_argument("Error: side or turn unspecified");
 
-			Mark winner = grid.Won();
+			// Terminal node
 			if (grid.Filled())
 			{
-				if (winner == Mark::empty)
-					return Result::draw;
-				else if (winner != side)
-					return Result::loss;
-				else
-					return Result::draw;
+				Mark winner = grid.Won();
+				if (winner == Mark::empty) return DRAW;
+				else if (winner != side) return LOSS;
+				else return WIN;
 			}
 
-			//std::set<Grid> losing_grids;
-			for (uint row = 0; row < 3; ++row)
-				for (uint col = 0; col < 3; ++col)
-				{
-					if (grid.at(row, col) != Mark::empty)
-						continue;
-					// Changing state
-					Grid g = grid;
-					(turn == Mark::cross) ? g.SetCross(row, col) : g.SetNought(row, col);
-					// Intermediate node
-					Result temp = Minimax(g, ((turn == Mark::cross) ? Mark::nought : Mark::cross));
-					if (temp == Result::loss)
-						return Result::draw;
-					if (temp == Result::draw)
-						continue;
-					if (temp == Result::win)
-						return Result::win;
-				}
-			return Result::draw;
+			// Intermediate node
+			Result temp, val;
+			if (turn == side)
+			{
+				val = LOSS;
+				for (uint row = 0; row < 3; ++row)
+					for (uint col = 0; col < 3; ++col)
+					{
+						if (grid.at(row, col) != Mark::empty)
+							continue;
+						Grid g = grid;
+						(turn == Mark::cross) ? g.SetCross(row, col) : g.SetNought(row, col);
+
+						temp = Minimax(g, ((turn == Mark::cross) ? Mark::nought : Mark::cross), alpha, beta);
+						if (temp > val) val = temp;
+						if (val > alpha) alpha = val;
+						if (beta <= alpha)
+							return val;
+					}
+				return val;
+			}
+			else
+			{
+				val = WIN;
+				for (uint row = 0; row < 3; ++row)
+					for (uint col = 0; col < 3; ++col)
+					{
+						if (grid.at(row, col) != Mark::empty)
+							continue;
+						Grid g = grid;
+						(turn == Mark::cross) ? g.SetCross(row, col) : g.SetNought(row, col);
+
+						temp = Minimax(g, ((turn == Mark::cross) ? Mark::nought : Mark::cross), alpha, beta);
+						if (temp < val)	val = temp;
+						if (val < beta) beta = val;
+						if (beta <= alpha)
+							return val;
+					}
+				return val;
+			}
 		}
 	};
 }
