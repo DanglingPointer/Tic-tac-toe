@@ -1,6 +1,13 @@
 #pragma once
 #include<afxwin.h>
 #include"Tictactoe.h"
+
+#ifdef ALPHABETA
+#define ALG ttt::AlphaBeta
+#else
+#define ALG ttt::Minimax
+#endif
+
 using namespace ttt;
 
 class CMainFrame :public CFrameWnd
@@ -12,12 +19,13 @@ public:
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint pt);
 	DECLARE_MESSAGE_MAP();
 private:
+	Mark m_winning_side;
 	CRect m_wr, m_crosses_button, m_noughts_button, m_reset_button;
 	int m_wr_cx, m_wr_cy;
 	Gameplay m_ttt;
 };
 
-CMainFrame::CMainFrame()
+CMainFrame::CMainFrame() :m_winning_side(Mark::empty)
 {
 	Create(NULL, L"Tic-tac-toe", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX, CRect(0, 0, 500, 530));
 
@@ -84,6 +92,12 @@ inline void CMainFrame::OnPaint()
 				int bottom = top + dc.GetTextExtent("O").cy;
 				dc.DrawTextW("O", CRect(left, top, right, bottom), DT_SINGLELINE | DT_CENTER | DT_VCENTER);
 			}
+	if (m_winning_side == Mark::empty)
+		m_winning_side = m_ttt.pgrid->Won();
+	if (m_winning_side == Mark::cross)
+		MessageBoxW(L"Crosses won!", L"Congratulations!");
+	else if (m_winning_side == Mark::nought)
+		MessageBoxW(L"Noughts won!", L"Congratulations!");
 }
 
 inline void CMainFrame::OnLButtonDown(UINT nFlags, CPoint pt)
@@ -109,6 +123,7 @@ inline void CMainFrame::OnLButtonDown(UINT nFlags, CPoint pt)
 	// New game
 	if (m_reset_button.PtInRect(pt))
 	{
+		m_winning_side = Mark::empty;
 		m_ttt.Reset();
 		Invalidate(TRUE);
 		return;
@@ -128,28 +143,28 @@ inline void CMainFrame::OnLButtonDown(UINT nFlags, CPoint pt)
 		else if (pt.y < m_wr.bottom - m_wr_cy / 3) row = 1;
 		else if (pt.y < m_wr.bottom) row = 2;
 	}
-
 	if (!(row == -1 || col == -1) && m_ttt.pgrid->at(row, col) == Mark::empty)
 	{
 		if (m_ttt.side == Mark::cross)
 		{
 			m_ttt.pgrid->SetNought(row, col);
-			AIMakeMove(); // if without command prompt
+			AIMakeMove(); // without command prompt
 		}
 		else if (m_ttt.side == Mark::nought)
 		{
 			m_ttt.pgrid->SetCross(row, col);
-			AIMakeMove(); // if without command prompt
+			AIMakeMove(); // without command prompt
 		}
 		else
 			MessageBoxW(L"Choose side first!", L"Error");
-		Invalidate(TRUE);
 	}
 }
 
 inline void CMainFrame::AIMakeMove()
 {
-	m_ttt.AITurn();
+	m_winning_side = m_ttt.pgrid->Won();
+	if (m_winning_side == Mark::empty)
+		m_ttt.AITurn<ALG>();
 	Invalidate(TRUE);
 }
 

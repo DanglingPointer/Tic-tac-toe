@@ -1,7 +1,5 @@
 #pragma once
 #include<stdexcept>
-//#include<utility>
-//#include<list>
 
 #ifdef _CONSOLE
 #include<ostream>
@@ -77,10 +75,11 @@ namespace ttt
 		}
 		Mark Won() const
 		{
-			bool all_cross = true, all_nought = true;
+			bool all_cross, all_nought;
 			for (uint row = 0; row < 3; ++row)
 			{
-				for (uint col = 0; (col < 3); ++col)
+				all_cross = all_nought = true;
+				for (uint col = 0; col < 3; ++col)
 					won_at(row, col, all_cross, all_nought);
 				if (all_cross)
 					return Mark::cross;
@@ -88,9 +87,9 @@ namespace ttt
 					return Mark::nought;
 			}
 
-			all_cross = all_nought = true;
 			for (uint col = 0; col < 3; ++col)
 			{
+				all_cross = all_nought = true;
 				for (uint row = 0; row < 3; ++row)
 					won_at(row, col, all_cross, all_nought);
 				if (all_cross)
@@ -157,67 +156,16 @@ namespace ttt
 		return out;
 	}
 #endif
-	class Gameplay
+	// --- Algorithms ---
+#ifndef ALPHABETA
+	class Minimax // Simple Minimax
 	{
 	public:
-		Gameplay() :pgrid(new Grid()), side(Mark::empty)
+		explicit Minimax(Mark side) :m_side(side)
+		{ }
+		Result operator()(const Grid& grid, Mark turn) const
 		{
-			;
-		}
-		~Gameplay()
-		{
-			if (pgrid != nullptr)
-				delete pgrid;
-		}
-		void AITurn()
-		{
-			for (uint row = 0; row < 3; ++row)
-				for (uint col = 0; col < 3; ++col)
-				{
-					if (pgrid->at(row, col) != Mark::empty)
-						continue;
-					Grid* pg = new Grid(*pgrid);
-
-					(side == Mark::cross) ? pg->SetCross(row, col) : pg->SetNought(row, col);
-
-					if (Minimax(*pg, (side == Mark::cross) ? Mark::nought : Mark::cross) == WIN)
-					{
-						delete pgrid;
-						pgrid = pg;
-						return;
-					}
-					delete pg;
-				}
-			for (uint row = 0; row < 3; ++row)
-				for (uint col = 0; col < 3; ++col)
-				{
-					if (pgrid->at(row, col) != Mark::empty)
-						continue;
-					Grid* pg = new Grid(*pgrid);
-
-					(side == Mark::cross) ? pg->SetCross(row, col) : pg->SetNought(row, col);
-
-					if (Minimax(*pg, (side == Mark::cross) ? Mark::nought : Mark::cross) == DRAW)
-					{
-						delete pgrid;
-						pgrid = pg;
-						return;
-					}
-					delete pg;
-				}
-		}
-		void Reset()
-		{
-			if (pgrid == nullptr) pgrid = new Grid;
-			else pgrid->Clear();
-			side = Mark::empty;
-		}
-		Grid* pgrid;
-		Mark side; // AI side
-	private:
-		Result Minimax(const Grid& grid, Mark turn, Result alpha = LOSS, Result beta = WIN)
-		{
-			if (turn == Mark::empty || side == Mark::empty)
+			if (turn == Mark::empty || m_side == Mark::empty)
 				throw std::invalid_argument("Error: side or turn unspecified");
 
 			// Terminal node
@@ -225,13 +173,73 @@ namespace ttt
 			{
 				Mark winner = grid.Won();
 				if (winner == Mark::empty) return DRAW;
-				else if (winner != side) return LOSS;
+				else if (winner != m_side) return LOSS;
+				else return WIN;
+			}
+
+			// Intermediate node
+			Result temp, bestval;
+			if (turn == m_side)
+			{
+				bestval = LOSS;
+				for (uint row = 0; row < 3; ++row)
+					for (uint col = 0; col < 3; ++col)
+					{
+						if (grid.at(row, col) != Mark::empty)
+							continue;
+						Grid g = grid;
+						(turn == Mark::cross) ? g.SetCross(row, col) : g.SetNought(row, col);
+
+						temp = operator()(g, ((turn == Mark::cross) ? Mark::nought : Mark::cross));
+						if (temp > bestval)
+							bestval = temp;
+					}
+				return bestval;
+			}
+			else
+			{
+				bestval = WIN;
+				for (uint row = 0; row < 3; ++row)
+					for (uint col = 0; col < 3; ++col)
+					{
+						if (grid.at(row, col) != Mark::empty)
+							continue;
+						Grid g = grid;
+						(turn == Mark::cross) ? g.SetCross(row, col) : g.SetNought(row, col);
+
+						temp = operator()(g, ((turn == Mark::cross) ? Mark::nought : Mark::cross));
+						if (temp < bestval)
+							bestval = temp;
+					}
+				return bestval;
+			}
+		}
+	private:
+		Mark m_side;
+	};
+#else
+	class AlphaBeta // Alpha-beta pruning
+	{
+	public:
+		explicit AlphaBeta(Mark side) : m_side(side)
+		{ }
+		Result operator()(const Grid& grid, Mark turn, Result alpha = LOSS, Result beta = WIN) const
+		{
+			if (turn == Mark::empty || m_side == Mark::empty)
+				throw std::invalid_argument("Error: side or turn unspecified");
+
+			// Terminal node
+			if (grid.Filled())
+			{
+				Mark winner = grid.Won();
+				if (winner == Mark::empty) return DRAW;
+				else if (winner != m_side) return LOSS;
 				else return WIN;
 			}
 
 			// Intermediate node
 			Result temp, val;
-			if (turn == side)
+			if (turn == m_side)
 			{
 				val = LOSS;
 				for (uint row = 0; row < 3; ++row)
@@ -242,7 +250,7 @@ namespace ttt
 						Grid g = grid;
 						(turn == Mark::cross) ? g.SetCross(row, col) : g.SetNought(row, col);
 
-						temp = Minimax(g, ((turn == Mark::cross) ? Mark::nought : Mark::cross), alpha, beta);
+						temp = operator()(g, ((turn == Mark::cross) ? Mark::nought : Mark::cross), alpha, beta);
 						if (temp > val) val = temp;
 						if (val > alpha) alpha = val;
 						if (beta <= alpha)
@@ -261,7 +269,7 @@ namespace ttt
 						Grid g = grid;
 						(turn == Mark::cross) ? g.SetCross(row, col) : g.SetNought(row, col);
 
-						temp = Minimax(g, ((turn == Mark::cross) ? Mark::nought : Mark::cross), alpha, beta);
+						temp = operator()(g, ((turn == Mark::cross) ? Mark::nought : Mark::cross), alpha, beta);
 						if (temp < val)	val = temp;
 						if (val < beta) beta = val;
 						if (beta <= alpha)
@@ -270,5 +278,67 @@ namespace ttt
 				return val;
 			}
 		}
-	};
-}
+	private:
+		Mark m_side;
+	}; 
+#endif
+
+	class Gameplay
+	{
+	public:
+		Gameplay() :pgrid(new Grid()), side(Mark::empty)
+		{ }
+		~Gameplay()
+		{
+				delete pgrid;
+		}
+
+		Grid* pgrid;
+		Mark side; // AI side
+
+		template <class Alg_type> void AITurn()
+		{
+			Alg_type func(side);
+			for (uint row = 0; row < 3; ++row)
+				for (uint col = 0; col < 3; ++col)
+				{
+					if (pgrid->at(row, col) != Mark::empty)
+						continue;
+					Grid* pg = new Grid(*pgrid);
+
+					(side == Mark::cross) ? pg->SetCross(row, col) : pg->SetNought(row, col);
+
+					if ( func(*pg, (side == Mark::cross) ? Mark::nought : Mark::cross) == WIN )
+					{
+						delete pgrid;
+						pgrid = pg;
+						return;
+					}
+					delete pg;
+				}
+			for (uint row = 0; row < 3; ++row)
+				for (uint col = 0; col < 3; ++col)
+				{
+					if (pgrid->at(row, col) != Mark::empty)
+						continue;
+					Grid* pg = new Grid(*pgrid);
+
+					(side == Mark::cross) ? pg->SetCross(row, col) : pg->SetNought(row, col);
+
+					if ( func(*pg, (side == Mark::cross) ? Mark::nought : Mark::cross) == DRAW) 
+					{
+						delete pgrid;
+						pgrid = pg;
+						return;
+					}
+					delete pg;
+				}
+		}
+		void Reset()
+		{
+			pgrid->Clear();
+			side = Mark::empty;
+		}
+	}; // class Gameplay
+
+} // namespace ttt
