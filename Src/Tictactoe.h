@@ -169,13 +169,10 @@ namespace ttt
 				throw std::invalid_argument("Error: side or turn unspecified");
 
 			// Terminal node
-			if (grid.Filled())
-			{
-				Mark winner = grid.Won();
-				if (winner == Mark::empty) return DRAW;
-				else if (winner != m_side) return LOSS;
-				else return WIN;
-			}
+			Mark winner = grid.Won();
+			if (winner == m_side) return WIN;
+			if (winner != m_side && winner != Mark::empty) return LOSS;
+			if (winner == Mark::empty && grid.Filled()) return DRAW;
 
 			// Intermediate node
 			Result temp, bestval;
@@ -229,13 +226,10 @@ namespace ttt
 				throw std::invalid_argument("Error: side or turn unspecified");
 
 			// Terminal node
-			if (grid.Filled())
-			{
-				Mark winner = grid.Won();
-				if (winner == Mark::empty) return DRAW;
-				else if (winner != m_side) return LOSS;
-				else return WIN;
-			}
+			Mark winner = grid.Won();
+			if (winner == m_side) return WIN;
+			if (winner != m_side && winner != Mark::empty) return LOSS;
+			if (winner == Mark::empty && grid.Filled()) return DRAW;
 
 			// Intermediate node
 			Result temp, val;
