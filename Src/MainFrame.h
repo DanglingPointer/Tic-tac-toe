@@ -92,12 +92,16 @@ inline void CMainFrame::OnPaint()
 				int bottom = top + dc.GetTextExtent("O").cy;
 				dc.DrawTextW("O", CRect(left, top, right, bottom), DT_SINGLELINE | DT_CENTER | DT_VCENTER);
 			}
+	// Result message
 	if (m_winning_side == Mark::empty)
 		m_winning_side = m_ttt.pgrid->Won();
-	if (m_winning_side == Mark::cross)
-		MessageBoxW(L"Crosses won!", L"Congratulations!");
-	else if (m_winning_side == Mark::nought)
-		MessageBoxW(L"Noughts won!", L"Congratulations!");
+	if (m_winning_side != Mark::empty)
+	{
+		if (m_winning_side == m_ttt.side)
+			MessageBoxW(L"You lost!", L"Condolences!");
+		else
+			MessageBoxW(L"You won!", L"Congratulations!");
+	}
 }
 
 inline void CMainFrame::OnLButtonDown(UINT nFlags, CPoint pt)
