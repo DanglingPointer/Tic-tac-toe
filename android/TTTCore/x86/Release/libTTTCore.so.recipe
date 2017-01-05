@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<project>
+  <SOLibPaths>C:\Git\Tic-tac-toe\TTTCore\x86\Release\libTTTCore.so;C:\Android\android-sdk\ndk-bundle\prebuilt\android-x86\gdbserver\gdbserver;C:\Android\android-sdk\ndk-bundle\sources\cxx-stl\gnu-libstdc++\4.9\libs\x86\libgnustl_static.a</SOLibPaths>
+  <AndroidLibPaths />
+  <OObjPaths>C:\Git\Tic-tac-toe\TTTCore\TTTCore\x86\Release</OObjPaths>
+  <Configuration>Release</Configuration>
+  <Platform>x86</Platform>
+  <AndroidArchitecture>x86</AndroidArchitecture>
+  <!--links to other recipe files-->
+  <RecipeFiles />
+</project>
