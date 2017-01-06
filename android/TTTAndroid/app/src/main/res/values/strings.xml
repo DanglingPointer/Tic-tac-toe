@@ -4,4 +4,5 @@
     <string name="cross_btn">Play cross</string>
     <string name="nought_btn">Play noughts</string>
     <string name="start_btn">Choose side</string>
+    <string name="loss_msg">You lost!</string>
 </resources>

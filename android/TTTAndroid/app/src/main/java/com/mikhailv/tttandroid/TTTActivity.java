@@ -20,8 +20,7 @@ public class TTTActivity extends Activity implements View.OnClickListener
     private static final String PLAYER_KEY = "TTTActivity.crossPlayer";
 
     private ImageButton[] m_buttons;
-
-    private Boolean m_crossPlayer = true;
+    private Boolean m_crossPlayer;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
@@ -32,7 +31,7 @@ public class TTTActivity extends Activity implements View.OnClickListener
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.menu_item_cross:
                 TTTCore.reset();
                 m_crossPlayer = true;
@@ -101,7 +100,7 @@ public class TTTActivity extends Activity implements View.OnClickListener
     {
         int index = getButtonIndex(v);
 
-        if (TTTCore.getAt(index) != EMPTY || TTTCore.isWon() != EMPTY)
+        if (TTTCore.getAt(index) != EMPTY || m_crossPlayer == null || TTTCore.isWon() != EMPTY)
             return;
 
         if (m_crossPlayer)
@@ -115,7 +114,7 @@ public class TTTActivity extends Activity implements View.OnClickListener
 
         int winningSide = TTTCore.isWon();
         if (winningSide != EMPTY) { // impossible to win
-            Toast.makeText(getApplicationContext(), "You lost!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), R.string.loss_msg, Toast.LENGTH_SHORT).show();
         }
     }
     private int getButtonIndex(View button)
