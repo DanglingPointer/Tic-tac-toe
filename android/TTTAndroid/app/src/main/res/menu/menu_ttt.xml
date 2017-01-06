@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:icon="@drawable/ic_choose_side"
+        android:title="@string/start_btn"
+        android:showAsAction="always">
+
+        <menu>
+            <item
+                android:id="@+id/menu_item_cross"
+                android:title="@string/cross_btn"
+                android:icon="@drawable/ic_cross"
+                />
+            <item
+                android:id="@+id/menu_item_nought"
+                android:title="@string/nought_btn"
+                android:icon="@drawable/ic_nought"/>
+        </menu>
+
+    </item>
+
+</menu>

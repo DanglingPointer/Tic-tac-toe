@@ -1,11 +1,11 @@
 package com.mikhailv.tttandroid;
 
 import android.app.Activity;
-import android.os.Build;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.Button;
 import android.widget.Toast;
 
 import java.util.Random;
@@ -16,17 +16,45 @@ public class TTTActivity extends Activity implements View.OnClickListener
     static final int CROSS = 1;
     static final int NOUGHT = 2;
 
-    private static final String GRID_KEY = "grid";
-    private static final String PLAYER_KEY = "crossPlayer";
+    private static final String GRID_KEY = "TTTActivity.grid";
+    private static final String PLAYER_KEY = "TTTActivity.crossPlayer";
 
     private ImageButton[] m_buttons;
 
-    private Boolean m_crossPlayer;
+    private Boolean m_crossPlayer = true;
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        getMenuInflater().inflate(R.menu.menu_ttt, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        switch (item.getItemId()){
+            case R.id.menu_item_cross:
+                TTTCore.reset();
+                m_crossPlayer = true;
+                TTTCore.setAiSideNought();
+                updateAll();
+                return true;
+            case R.id.menu_item_nought:
+                TTTCore.reset();
+                m_crossPlayer = false;
+                TTTCore.setAiSideCross();
+                Random rand = new Random();
+                TTTCore.setCross(rand.nextInt(9)); // first move random
+                updateAll();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
-        super.onCreate(savedInstanceState);
+        super.onCreate(savedInstanceState); // calls onCreateOptionsMenu()
         setContentView(R.layout.activity_ttt);
 
         m_crossPlayer = null;
@@ -45,50 +73,14 @@ public class TTTActivity extends Activity implements View.OnClickListener
             b.setOnClickListener(this);
         }
 
-        final Button crossBtn = (Button)findViewById(R.id.crossButton);
-        final Button noughtBtn = (Button)findViewById(R.id.noughtButton);
-
-        crossBtn.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
-            {
-                m_crossPlayer = true;
-                setButtonColor(crossBtn, noughtBtn);
-
-                TTTCore.reset();
-                TTTCore.setAiSideNought();
-                updateAll();
-            }
-        });
-
-        noughtBtn.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
-            {
-                m_crossPlayer = false;
-                setButtonColor(noughtBtn, crossBtn);
-
-                TTTCore.reset();
-                TTTCore.setAiSideCross();
-
-                Random rand = new Random();
-                TTTCore.setCross(rand.nextInt(9)); // first move random
-                updateAll();
-            }
-        });
-
         if (savedInstanceState != null && savedInstanceState.getIntArray(GRID_KEY) != null) {
             m_crossPlayer = savedInstanceState.getBoolean(PLAYER_KEY);
             int[] state = savedInstanceState.getIntArray(GRID_KEY);
             TTTCore.setState(state);
 
             if (m_crossPlayer) {
-                setButtonColor(crossBtn, noughtBtn);
                 TTTCore.setAiSideNought();
             } else {
-                setButtonColor(noughtBtn, crossBtn);
                 TTTCore.setAiSideCross();
             }
             updateAll();
@@ -109,7 +101,7 @@ public class TTTActivity extends Activity implements View.OnClickListener
     {
         int index = getButtonIndex(v);
 
-        if (TTTCore.getAt(index) != EMPTY || m_crossPlayer == null || TTTCore.isWon() != EMPTY)
+        if (TTTCore.getAt(index) != EMPTY || TTTCore.isWon() != EMPTY)
             return;
 
         if (m_crossPlayer)
@@ -124,16 +116,6 @@ public class TTTActivity extends Activity implements View.OnClickListener
         int winningSide = TTTCore.isWon();
         if (winningSide != EMPTY) { // impossible to win
             Toast.makeText(getApplicationContext(), "You lost!", Toast.LENGTH_SHORT).show();
-        }
-    }
-    private void setButtonColor(Button selected, Button unselected)
-    {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            selected.setBackgroundColor(getColor(R.color.highlightedButton));
-            unselected.setBackgroundColor(getColor(R.color.buttonGrey));
-        } else {
-            selected.setBackgroundColor(getResources().getColor(R.color.highlightedButton));
-            unselected.setBackgroundColor(getResources().getColor(R.color.buttonGrey));
         }
     }
     private int getButtonIndex(View button)

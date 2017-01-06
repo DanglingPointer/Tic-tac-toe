@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Tic-tac-toe</string>
-    <string name="welcome_toast">Choose side to start playing!</string>
-    <string name="cross_btn">Cross</string>
-    <string name="nought_btn">Noughts</string>
+    <string name="welcome_toast">Hint: toolbar is king</string>
+    <string name="cross_btn">Play cross</string>
+    <string name="nought_btn">Play noughts</string>
+    <string name="start_btn">Choose side</string>
 </resources>

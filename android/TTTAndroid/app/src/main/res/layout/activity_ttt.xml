@@ -43,28 +43,6 @@
         android:layout_above="@+id/imageButton3"
         android:layout_toEndOf="@+id/imageButton3" />
 
-    <Button
-        android:text="@string/cross_btn"
-        android:textColor="@color/white"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_alignStart="@+id/imageButton0"
-        android:minWidth="100dp"
-        android:background="@color/buttonGrey"
-        android:id="@+id/crossButton" />
-
-    <Button
-        android:text="@string/nought_btn"
-        android:textColor="@color/white"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_alignEnd="@+id/imageButton2"
-        android:minWidth="100dp"
-        android:background="@color/buttonGrey"
-        android:id="@+id/noughtButton" />
-
     <ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -105,7 +83,6 @@
         android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp"
 
-        android:layout_below="@+id/noughtButton"
         android:layout_centerHorizontal="true" />
 
     <ImageButton

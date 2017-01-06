@@ -1,5 +1,12 @@
 <resources>
 
-    <style name="AppTheme" parent="@android:style/Theme.Holo.Light.DarkActionBar"/>
+    <style name="TTTApp.Theme" parent="@android:style/Theme.Holo.Light.DarkActionBar">
+        <item name="android:popupMenuStyle">@style/TTTApp.PopupMenu</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="TTTApp.PopupMenu" parent="android:Widget.Holo.Light.ListPopupWindow">
+        <item name="android:popupBackground">@android:drawable/dialog_holo_dark_frame</item>
+    </style>
 
 </resources>
