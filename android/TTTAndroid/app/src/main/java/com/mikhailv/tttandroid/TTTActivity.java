@@ -100,7 +100,12 @@ public class TTTActivity extends Activity implements View.OnClickListener
     {
         int index = getButtonIndex(v);
 
-        if (TTTCore.getAt(index) != EMPTY || m_crossPlayer == null || TTTCore.isWon() != EMPTY)
+        if (m_crossPlayer == null){
+            Toast.makeText(getApplicationContext(), R.string.welcome_toast, Toast.LENGTH_SHORT)
+                    .show();
+            return;
+        }
+        if (TTTCore.getAt(index) != EMPTY || TTTCore.isWon() != EMPTY)
             return;
 
         if (m_crossPlayer)
